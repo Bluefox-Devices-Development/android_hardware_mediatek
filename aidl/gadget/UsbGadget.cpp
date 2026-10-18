@@ -310,13 +310,13 @@ ScopedAStatus UsbGadget::setCurrentUsbFunctions(long functions,
         // Make sure we reset saving state if there are no functions enabled.
         if (!WriteStringToFile("0", getUdcNodeHelper(SAVING_PATH)))
             ALOGW("Failed to reset saving state");
-        if (callback == NULL)
-            return ScopedAStatus::fromServiceSpecificErrorWithMessage(-1, "callback == NULL");
-        ScopedAStatus ret = callback->setCurrentUsbFunctionsCb(functions, status, in_transactionId);
-        if (!ret.isOk())
-            ALOGE("Error while calling setCurrentUsbFunctionsCb %s", ret.getDescription().c_str());
-        return ScopedAStatus::fromServiceSpecificErrorWithMessage(
-                -1, "Error while calling setCurrentUsbFunctionsCb");
+        mCurrentUsbFunctionsApplied = true;
+        if (callback != nullptr) {
+            ScopedAStatus ret = callback->setCurrentUsbFunctionsCb(functions, Status::SUCCESS,
+                                                                  in_transactionId);
+            if (!ret.isOk()) return ret;
+        }
+        return ScopedAStatus::ok();
     }
 
     status = validateAndSetVidPid(functions);
